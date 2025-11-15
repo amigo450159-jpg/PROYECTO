@@ -6,7 +6,7 @@ import streamlit as st  # UI consolidada
 from pathlib import Path
 
 #Leer el codigo
-url ='https://raw.githubusercontent.com/amigo450159-jpg/bases.2/main/ANM_Volúmen_de_Explotación_de_Minerales_Asociados_a_Pagos_de_Regalías_20251025%20(1).csv'
+url =''
 
 df=pd.read_csv(url)
 
