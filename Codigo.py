@@ -15,7 +15,7 @@ df=df.dropna(axis=1, how= 'all')
 df=df.drop(['Codigo DANE', 'Nombre Del Proyecto','Trimestre','Contraprestacion'],axis=1)
 
 #  Renombrar columnas (lista coincide exactamente con las seleccionadas)
-df.columns = ["Municipio", "Departamento", "Recurso", "Año","Unidades", "Regalias", "Volumen"]
+df.columns = ["Municipio", "Departamento", "Recurso", "Año", "Unidades", "Regalias", "Volumen"]
 
 # Conversión simple: reemplazar comas por puntos, quitar "$" y espacios
 df['Regalias'] = (
@@ -203,6 +203,21 @@ plt.tight_layout()
 plt.savefig("regalias_categoria_total.png", dpi=150)
 plt.close()
 
+regalias_anio_cat = df.groupby(["Año", "Categoria"]) ["Regalias"].sum().reset_index()
+
+plt.figure(figsize=(12, 6))
+for cat in ["Carbon", "Estrategico"]:
+    data = regalias_anio_cat[regalias_anio_cat["Categoria"] == cat]
+    plt.plot(data["Año"], data["Regalias"], marker="o", label=cat, linewidth=2)
+plt.xlabel("Año")
+plt.ylabel("Regalías (COP)")
+plt.title("¿Hay transición? Evolución de regalías: Carbón vs Estratégicos")
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig("evolucion_temporal.png", dpi=150)
+plt.close()
+
 
 # ------------------ Escritura consolidada en un único Excel  ------------------
 with pd.ExcelWriter("analisis_mineria.xlsx") as writer:
@@ -388,6 +403,15 @@ elif page == "Comparativos":
         st.image("regalias_municipio_categoria_top12.png", caption="Regalías por municipio y categoría (Top 12)", use_container_width=True)
         st.caption("Datos obtenidos del portal de Datos Abiertos del Estado Colombiano (datos.gov.co)")
 
+    st.subheader("¿Realmente hay transición?")
+    st.image('evolucion_temporal.png', use_container_width=True)
+    st.markdown("""
+    **Pregunta clave:** Si Colombia está en transición energética,
+    ¿por qué el carbón no disminuye y los estratégicos no crecen?
+    """)
+
+
+
     # Interpretación de comparativos -Analisis cualitativo
     st.markdown("Interpretación de regalías por categoría:")
     st.markdown(
@@ -426,13 +450,14 @@ elif page == "Conclusiones":
         """
         <div class='justify'>
         Conclusiones
-        
         El análisis de datos evidencia una desconexión clara entre los objetivos de la transición energética en Colombia y la estructura real de explotación minera del país. Aunque el volumen de explotación está diversificado entre recursos como oro, plata, arenas y gravas, los minerales estratégicos —fundamentales para tecnologías limpias— presentan una participación marginal tanto en frecuencia como en generación de regalías.
-        
+
+        El análisis temporal 2012-2025 revela que la dependencia del carbón no solo persiste, sino que se intensificó. El pico de regalías carboníferas en 2022 (7 billones COP) representa el valor más alto en toda la serie histórica, mientras que los minerales estratégicos no superan 1 billón en su mejor año. Esta divergencia creciente demuestra que Colombia no está transitando hacia un modelo de economía baja en carbono; por el contrario, aprovecha coyunturas de mercado para maximizar exportaciones fósiles sin desarrollar alternativas estratégicas sostenibles.
+
         La información revela que el carbón, pese a no ser el recurso más frecuente, continúa siendo el mineral dominante en términos económicos. Sus regalías superan ampliamente a las de los minerales estratégicos, lo que confirma la dependencia del país de este recurso fósil. Esta concentración económica refuerza un modelo extractivo que aún no se alinea con los objetivos de una economía baja en carbono.
         
         Asimismo, las regalías muestran una distribución territorial desigual. Municipios localizados en el Cesar y La Guajira reciben montos extraordinariamente altos derivados del carbón, mientras que los municipios asociados a minerales estratégicos reciben valores muy bajos en comparación. Esta disparidad limita la capacidad de los territorios productores de minerales emergentes para impulsar su desarrollo regional y fortalecer su infraestructura económica para la transición energética.
-        
+
         En conjunto, los resultados permiten concluir que Colombia aún enfrenta importantes rezagos en la diversificación productiva necesaria para avanzar hacia la transición energética. Aunque existe un discurso institucional orientado a promover minerales estratégicos, su realidad productiva y económica muestra que el país continúa anclado a los combustibles fósiles. El análisis evidencia la necesidad de fortalecer políticas de incentivo, inversión y desarrollo territorial que permitan equilibrar la explotación mineral con las metas nacionales de sostenibilidad.
         </div>
         """,
