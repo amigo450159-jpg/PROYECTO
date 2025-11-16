@@ -6,7 +6,7 @@ import streamlit as st  # UI consolidada
 from pathlib import Path
 
 #Leer el codigo
-url =''
+url ='https://raw.githubusercontent.com/amigo450159-jpg/PROYECTO/refs/heads/main/base_de_datos.csv'
 
 df=pd.read_csv(url)
 
@@ -17,7 +17,6 @@ df=df.drop(['Codigo DANE', 'Nombre Del Proyecto','Trimestre','Contraprestacion']
 #  Renombrar columnas (lista coincide exactamente con las seleccionadas)
 df.columns = ["Municipio", "Departamento", "Recurso", "Año","Unidades", "Regalias", "Volumen"]
 
-# -------------Convertir columnas a string y limpiar--------------------
 # Conversión simple: reemplazar comas por puntos, quitar "$" y espacios
 df['Regalias'] = (
     df['Regalias']
@@ -50,13 +49,12 @@ df["Año"] = pd.to_numeric(df["Año"])
 df["Recurso"] = df["Recurso"].astype(str).str.strip()
 df["Departamento"] = df["Departamento"].astype(str).str.strip()
 
-#  Frecuencia Recurso x Departamento (tabla larga)
+#  Frecuencia Recurso x Departamento
 counts = (
     df.groupby(["Recurso", "Departamento"]).size().reset_index(name="Frecuencia")
 )
-# Consolidación en Excel: no generamos CSV individuales
 
-#  Frecuencia por Recurso (completa y Top 10)
+#  Frecuencia por Recurso (Top 10)
 freq_recursos = (
     df["Recurso"].value_counts().rename_axis("Recurso").reset_index(name="Frecuencia")
 )
@@ -124,7 +122,7 @@ lista_estrategicos_canon = [
     "Materiales de construcción", "Níquel", "Oro", "Platino", "Sílice", "Yeso"
 ]
 
-# Diccionario
+# Diccionario para unificar diferentes variaciones de nombres de minerales bajo una categoría estándar
 map_estrategicos = {
     "Aluminio": ["ALUMINIO"],
     "Caliza": ["CALIZAS", "CALIZA"],
@@ -163,19 +161,21 @@ def categorize_resource(value: str) -> str:
         if r in [e.upper() for e in etiquetas]:
             return "Estrategico"
     return "Otros"
-
+# Aplicar categorización al DataFrame
 df["Categoria"] = df["Recurso"].apply(categorize_resource)
 
-# 1) Comparativo: Recurso (por categoría) vs Valor de Regalías por Municipio
+# Comparativo: Recurso (por categoría) vs Valor de Regalías por Municipio
+#Agrupamos **Municipio** Y **Categoría** y Suma todas las regalías de cada combinación
 regalias_muni_cat = (
     df.groupby(["Municipio", "Categoria"]) ["Regalias"].sum().reset_index()
 )
-
+# Se toma solo los 12 mas grandes municipios por regalías totales
 top_munis = (
     regalias_muni_cat.groupby("Municipio")["Regalias"].sum().nlargest(12).index
 )
 regalias_muni_cat_top = regalias_muni_cat[regalias_muni_cat["Municipio"].isin(top_munis)]
 
+#Creación de gráfico de barras apiladas
 plt.figure(figsize=(14, 8))
 sns.barplot(
     data=regalias_muni_cat_top,
@@ -216,7 +216,6 @@ with pd.ExcelWriter("analisis_mineria.xlsx") as writer:
     pivot_top10.reset_index().to_excel(writer, sheet_name="Pivot_Top10", index=False)
     metrics_reset.to_excel(writer, sheet_name="Resumen_Dispersion", index=False)
 
-    # Nuevos comparativos
     regalias_muni_cat_top.to_excel(
         writer, sheet_name="Regalias_Muni_Categoria_Top12", index=False
     )
@@ -227,12 +226,13 @@ with pd.ExcelWriter("analisis_mineria.xlsx") as writer:
 print("✅ Excel consolidado generado: analisis_mineria.xlsx (7 hojas)")
 
 # =====================
-# STREAMLIT APP (UI)
+# STREAMLIT APP 
 # =====================
 # Estructura simple para ver gráficas generadas y un DataFrame básico.
 st.set_page_config(page_title="Análisis Minero", layout="wide")
 
 # ---------- Estilos: reducir espacios y padding ----------
+#Streamlit normalmente no permite HTML/CSS por seguridad, pero con unsafe_allow_html=True puedes insertar código HTML/CSS personalizado.
 st.markdown(
     """
     <style>
@@ -271,6 +271,9 @@ page = st.sidebar.radio(
         "Conclusiones",
     ),
 )
+# Solo UNA página puede estar activa a la vez
+# elif garantiza que solo se ejecuta UN bloque
+# elif dice claramente: "estas opciones son mutuamente excluyentes"
 
 if page == "Introducción":
     # ---------- Introducción (restaurada) ----------
@@ -288,7 +291,7 @@ if page == "Introducción":
     )
 
 elif page == "Objetivos":
-    # ---------- Objetivos (restaurados) ----------
+    # ---------- Objetivos  ----------
     st.subheader("Objetivos")
     st.write(
         """
@@ -297,6 +300,7 @@ elif page == "Objetivos":
         - Proveer una tabla básica del dataset para inspección y validación.
         """
     )
+    # ---------- Planteamiento del problema ---------
 elif page == "Planteamiento del problema":
     st.subheader("Planteamiento del problema")
     st.markdown(
@@ -310,6 +314,7 @@ elif page == "Planteamiento del problema":
         """,
         unsafe_allow_html=True,
     )
+    # ---------- Justificacion ---------
 elif page == "Justificacion":
     st.subheader("Justificacion")
     st.markdown(
@@ -333,9 +338,8 @@ elif page == "Justificacion":
         """,
         unsafe_allow_html=True,
     )
-
     
-
+ # ---------- Frecuencias ---------
 elif page == "Frecuencias":
     st.subheader("Frecuencias")
     st.write("Tablas de frecuencia por recurso y matriz pivot Top10.")
@@ -351,7 +355,7 @@ elif page == "Frecuencias":
         st.image("frecuencia_dep_vs_rec_heatmap_top10.png", caption="Heatmap Frecuencia: Departamento × Recurso (Top10)", use_container_width=True)
         st.caption("Datos obtenidos del portal de Datos Abiertos del Estado Colombiano (datos.gov.co)")
 
-    # Interpretación en formato limpio
+    # Interpretación en formato limpio-Analisis cualitativo
     st.markdown("Interpretación de las frecuencias:")
     st.markdown(
         """
@@ -371,7 +375,7 @@ elif page == "Frecuencias":
         """
     )
     st.info("La explotación está territorialmente concentrada en ciertos departamentos.")
-
+ # ---------- Comparativos ---------
 elif page == "Comparativos":
     st.subheader("Comparativos: Estratégicos vs Carbón")
     st.write("Regalías totales por categoría y por municipio (Top 12).")
@@ -393,7 +397,7 @@ elif page == "Comparativos":
         st.image("regalias_municipio_categoria_top12.png", caption="Regalías por municipio y categoría (Top 12)", use_container_width=True)
         st.caption("Datos obtenidos del portal de Datos Abiertos del Estado Colombiano (datos.gov.co)")
 
-    # Interpretación de comparativos
+    # Interpretación de comparativos -Analisis cualitativo
     st.markdown("Interpretación de regalías por categoría:")
     st.markdown(
         """
@@ -413,6 +417,8 @@ elif page == "Comparativos":
     )
     st.info("La desigualdad en regalías es muy marcada entre municipios.")
 
+ # ---------- Datos ---------
+
 elif page == "Datos":
     st.subheader("Datos básicos del dataset")
     columnas_basicas = ["Municipio", "Departamento", "Recurso", "Año", "Regalias", "Volumen"]
@@ -422,6 +428,7 @@ elif page == "Datos":
     st.dataframe(df_basico, use_container_width=True, height=380)
     st.caption("Montos expresados en pesos colombianos (COP)")
 
+# ---------- Conclusiones ---------
 elif page == "Conclusiones":
     st.subheader("Conclusiones")
     st.markdown(
@@ -441,3 +448,4 @@ elif page == "Conclusiones":
         unsafe_allow_html=True,
     )
     st.caption("analisis realizado por Martha cristina arias rodriguez correo: marthacristinaarias@hotmail.com")
+#Fin del codigo😊
