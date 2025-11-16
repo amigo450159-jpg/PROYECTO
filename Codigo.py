@@ -249,10 +249,7 @@ st.title("Análisis Minero y Transición Energética")
 st.caption("Vista consolidada: introducción, objetivos, frecuencias, comparativos y datos básicos")
 
 # Imagen de portada bajo el título
-try:
-    st.image("portada.png", use_container_width=True)
-except Exception:
-    st.caption("No se encontró el archivo portada.png en el proyecto.")
+st.image('img/encabezado.png', use_container_width=True)
 
 st.sidebar.title("Navegación")
 page = st.sidebar.radio(
