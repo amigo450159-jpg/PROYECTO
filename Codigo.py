@@ -72,8 +72,7 @@ bars = plt.barh(top10_pct["Recurso"], top10_pct["Porcentaje"], color="#4C78A8")
 plt.gca().invert_yaxis()
 plt.xlabel("Participación (%)")
 plt.title("Participación (%) Top 10 recursos por frecuencia")
-for i, v in enumerate(top10_pct["Porcentaje"]):
-    plt.text(v + 0.5, i, f"{v:.1f}%", va="center")
+plt.bar_label(bars, fmt='%.1f%%', padding=5)
 plt.tight_layout()
 plt.savefig("frecuencia_top10_recursos_barras_pct.png", dpi=150)
 plt.close()
@@ -88,9 +87,7 @@ top_recursos_10 = rec_totales.head(10).index
 pivot_top10 = counts.pivot(index="Departamento", columns="Recurso", values="Frecuencia").fillna(0)
 pivot_top10 = pivot_top10.loc[top_departamentos_10, pivot_top10.columns.intersection(top_recursos_10)]
 
-fig_w = max(10, len(pivot_top10.columns) * 0.8)
-fig_h = max(8, len(pivot_top10.index) * 0.6)
-plt.figure(figsize=(fig_w, fig_h))
+plt.figure(figsize=(12, 8))
 sns.heatmap(pivot_top10, cmap="mako", annot=True, fmt="g", cbar_kws={"label": "Frecuencia"})
 plt.title("Frecuencia Top 10 Departamento × Top 10 Recurso")
 plt.xlabel("Recurso")
