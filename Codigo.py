@@ -46,8 +46,8 @@ df["Año"] = pd.to_numeric(df["Año"])
 
 
 # Normalizar texto
-df["Recurso"] = df["Recurso"].astype(str).str.strip()
-df["Departamento"] = df["Departamento"].astype(str).str.strip()
+df["Recurso"] = df["Recurso"].astype(str).str.strip().str.upper()
+df["Departamento"] = df["Departamento"].astype(str).str.strip().str.upper()
 
 #  Frecuencia Recurso x Departamento
 counts = (
@@ -154,11 +154,11 @@ lista_carbon = ["CARBON", "CARBON TERMICO", "CARBON ANTRACITA"]
 
 # Función de categorización
 def categorize_resource(value: str) -> str:
-    r = str(value).strip().upper()
-    if r in [x.upper() for x in lista_carbon]:
+    r = str(value)
+    if r in lista_carbon:
         return "Carbon"
     for etiquetas in map_estrategicos.values():
-        if r in [e.upper() for e in etiquetas]:
+        if r in etiquetas:
             return "Estrategico"
     return "Otros"
 # Aplicar categorización al DataFrame
@@ -249,7 +249,7 @@ st.title("Análisis Minero y Transición Energética")
 st.caption("Vista consolidada: introducción, objetivos, frecuencias, comparativos y datos básicos")
 
 # Imagen de portada bajo el título
-st.image('img/encabezado.png', use_container_width=True)
+st.image('portada.png', use_container_width=True)
 
 st.sidebar.title("Navegación")
 page = st.sidebar.radio(
@@ -441,5 +441,5 @@ elif page == "Conclusiones":
         """,
         unsafe_allow_html=True,
     )
-    st.caption("analisis realizado por Martha cristina arias rodriguez correo: marthacristinaarias@hotmail.com")
+    st.caption("Analisis realizado por Martha cristina arias rodriguez correo: marthacristinaarias@hotmail.com")
 #Fin del codigo😊
