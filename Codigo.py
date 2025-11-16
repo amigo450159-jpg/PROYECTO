@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st  # UI consolidada
-from pathlib import Path
+
 
 #Leer el codigo
 url ='https://raw.githubusercontent.com/amigo450159-jpg/PROYECTO/refs/heads/main/base_de_datos.csv'
@@ -249,12 +249,9 @@ st.title("Análisis Minero y Transición Energética")
 st.caption("Vista consolidada: introducción, objetivos, frecuencias, comparativos y datos básicos")
 
 # Imagen de portada bajo el título
-_base_dir = Path(__file__).resolve().parent
-_portada_candidates = [Path("portada.png"), _base_dir / "portada.png"]
-_portada = next((p for p in _portada_candidates if p.exists()), None)
-if _portada is not None:
-    st.image(str(_portada), use_container_width=True)
-else:
+try:
+    st.image("portada.png", use_container_width=True)
+except Exception:
     st.caption("No se encontró el archivo portada.png en el proyecto.")
 
 st.sidebar.title("Navegación")
